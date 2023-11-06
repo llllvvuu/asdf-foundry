@@ -2,7 +2,6 @@
 
 set -euo pipefail
 
-# TODO: Ensure this is the correct GitHub homepage where releases can be downloaded for foundry.
 GH_REPO="https://github.com/foundry-rs/foundry"
 TOOL_NAME="foundry"
 TOOL_TEST="forge --help"
@@ -11,6 +10,37 @@ fail() {
 	echo -e "asdf-$TOOL_NAME: $*"
 	exit 1
 }
+
+# Credit: EXT/PLATFORM/ARCHITECTURE detection from foundryup
+EXT="tar.gz"
+PLATFORM=$(uname -s | awk '{print tolower($0)}')
+case $PLATFORM in
+	linux) ;;
+	darwin|mac*)
+		PLATFORM="darwin"
+		;;
+	mingw*|win*)
+		EXT="zip"
+		PLATFORM="win32"
+		;;
+	*)
+		fail "unsupported platform: $PLATFORM"
+		;;
+esac
+
+ARCHITECTURE=$(uname -m | awk '{print tolower($0)}')
+if [ "${ARCHITECTURE}" = "x86_64" ]; then
+	# Redirect stderr to /dev/null to avoid printing errors if non Rosetta.
+	if [ "$(sysctl -n sysctl.proc_translated 2>/dev/null)" = "1" ]; then
+		ARCHITECTURE="arm64" # Rosetta.
+	else
+		ARCHITECTURE="amd64" # Intel.
+	fi
+elif [ "${ARCHITECTURE}" = "arm64" ] ||[ "${ARCHITECTURE}" = "aarch64" ] ; then
+	ARCHITECTURE="arm64" # Arm.
+else
+	ARCHITECTURE="amd64" # Amd.
+fi
 
 curl_opts=(-fsSL)
 
@@ -31,8 +61,6 @@ list_github_tags() {
 }
 
 list_all_versions() {
-	# TODO: Adapt this. By default we simply list the tag names from GitHub releases.
-	# Change this function if foundry has other means of determining installable versions.
 	list_github_tags
 }
 
@@ -41,8 +69,7 @@ download_release() {
 	version="$1"
 	filename="$2"
 
-	# TODO: Adapt the release URL convention for foundry
-	url="$GH_REPO/archive/v${version}.tar.gz"
+	url="$GH_REPO/releases/download/${version}/foundry_nightly_${PLATFORM}_$ARCHITECTURE.$EXT"
 
 	echo "* Downloading $TOOL_NAME release $version..."
 	curl "${curl_opts[@]}" -o "$filename" -C - "$url" || fail "Could not download $url"
@@ -61,7 +88,6 @@ install_version() {
 		mkdir -p "$install_path"
 		cp -r "$ASDF_DOWNLOAD_PATH"/* "$install_path"
 
-		# TODO: Assert foundry executable exists.
 		local tool_cmd
 		tool_cmd="$(echo "$TOOL_TEST" | cut -d' ' -f1)"
 		test -x "$install_path/$tool_cmd" || fail "Expected $install_path/$tool_cmd to be executable."
