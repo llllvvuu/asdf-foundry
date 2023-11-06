@@ -42,13 +42,6 @@ else
 	ARCHITECTURE="amd64" # Amd.
 fi
 
-curl_opts=(-fsSL)
-
-# NOTE: You might want to remove this if foundry is not hosted on GitHub releases.
-if [ -n "${GITHUB_API_TOKEN:-}" ]; then
-	curl_opts=("${curl_opts[@]}" -H "Authorization: token $GITHUB_API_TOKEN")
-fi
-
 sort_versions() {
 	sed 'h; s/[+-]/./g; s/.p\([[:digit:]]\)/.z\1/; s/$/.z/; G; s/\n/ /' |
 		LC_ALL=C sort -t. -k 1,1 -k 2,2n -k 3,3n -k 4,4n -k 5,5n | awk '{print $2}'
@@ -72,7 +65,7 @@ download_release() {
 	url="$GH_REPO/releases/download/${version}/foundry_nightly_${PLATFORM}_$ARCHITECTURE.$EXT"
 
 	echo "* Downloading $TOOL_NAME release $version..."
-	curl "${curl_opts[@]}" -o "$filename" -C - "$url" || fail "Could not download $url"
+	curl -#L "$url" -o "$filename" || fail "Could not download $url"
 }
 
 install_version() {

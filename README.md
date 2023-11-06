@@ -12,6 +12,10 @@
 - [Contributing](#contributing)
 - [License](#license)
 
+# Dependencies
+
+- `bash`, `curl`, `sed`, `grep`, `awk`: generic POSIX utilities.
+
 # Install
 
 Plugin:
