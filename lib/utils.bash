@@ -15,17 +15,17 @@ fail() {
 EXT="tar.gz"
 PLATFORM=$(uname -s | awk '{print tolower($0)}')
 case $PLATFORM in
-	linux) ;;
-	darwin|mac*)
-		PLATFORM="darwin"
-		;;
-	mingw*|win*)
-		EXT="zip"
-		PLATFORM="win32"
-		;;
-	*)
-		fail "unsupported platform: $PLATFORM"
-		;;
+linux) ;;
+darwin | mac*)
+	PLATFORM="darwin"
+	;;
+mingw* | win*)
+	EXT="zip"
+	PLATFORM="win32"
+	;;
+*)
+	fail "unsupported platform: $PLATFORM"
+	;;
 esac
 
 ARCHITECTURE=$(uname -m | awk '{print tolower($0)}')
@@ -36,7 +36,7 @@ if [ "${ARCHITECTURE}" = "x86_64" ]; then
 	else
 		ARCHITECTURE="amd64" # Intel.
 	fi
-elif [ "${ARCHITECTURE}" = "arm64" ] ||[ "${ARCHITECTURE}" = "aarch64" ] ; then
+elif [ "${ARCHITECTURE}" = "arm64" ] || [ "${ARCHITECTURE}" = "aarch64" ]; then
 	ARCHITECTURE="arm64" # Arm.
 else
 	ARCHITECTURE="amd64" # Amd.
